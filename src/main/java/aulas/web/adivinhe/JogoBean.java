@@ -1,6 +1,7 @@
 package aulas.web.adivinhe;
 
 import java.io.Serializable;
+import javax.faces.event.ActionEvent;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -47,5 +48,11 @@ public class JogoBean implements Serializable {
         palpite = palpiteAnterior = null;
         certo = false;
         return "index?faces-redirect=true";
+    }
+    
+    public void iniciarJogo(ActionEvent event) {
+        jogadorBean.jogarNovamente();
+        palpite = palpiteAnterior = null;
+        certo = false;
     }
 }
