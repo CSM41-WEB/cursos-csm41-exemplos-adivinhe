@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -51,5 +52,15 @@ public class JogoController implements Serializable {
           .where(cb.equal(rt.get(Jogo_.jogador), j));
         TypedQuery<Long> q = em.createQuery(cq);
         return q.getSingleResult().intValue();
+    }
+
+    public List<Tuple> numJogos() {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Tuple> cq = cb.createTupleQuery();
+        Root rt = cq.from(Jogo.class);
+        cq.multiselect(rt.get(Jogo_.jogador).alias("jogador"), cb.count(rt).alias("numJogos"))
+            .groupBy(rt.get(Jogo_.jogador));
+        TypedQuery<Tuple> q = em.createQuery(cq);
+        return q.getResultList();
     }
 }

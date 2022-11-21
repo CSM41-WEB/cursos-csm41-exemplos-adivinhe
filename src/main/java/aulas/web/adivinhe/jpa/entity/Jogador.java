@@ -1,12 +1,9 @@
 package aulas.web.adivinhe.jpa.entity;
 
-import aulas.web.adivinhe.rest.DateAdapter;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-import javax.json.bind.annotation.JsonbDateFormat;
-import javax.json.bind.annotation.JsonbTypeAdapter;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -65,6 +62,7 @@ public class Jogador implements Serializable {
     private Date dataNasc;
 
     @OneToMany(mappedBy = "jogador", cascade = CascadeType.REMOVE)
+    @JsonbTransient
     private List<Jogo> jogos;
 
     public Integer getCodigo() {

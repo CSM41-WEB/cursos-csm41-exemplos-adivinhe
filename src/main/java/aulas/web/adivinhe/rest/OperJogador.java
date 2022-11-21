@@ -4,12 +4,16 @@ import aulas.web.adivinhe.jpa.controller.JogadorController;
 import aulas.web.adivinhe.jpa.controller.JogoController;
 import aulas.web.adivinhe.jpa.entity.Jogador;
 import aulas.web.adivinhe.jpa.entity.Jogo;
-import java.text.SimpleDateFormat;
+import java.io.StringReader;
 import java.util.List;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.persistence.Tuple;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -26,10 +30,6 @@ import javax.ws.rs.core.Response;
 @Path("/jogador")
 public class OperJogador {
 
-    private static final SimpleDateFormat ISO_DATE = new SimpleDateFormat("yyyy-MM-dd");
-    private static final SimpleDateFormat ISO_DATE_TIME = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
-
-    
     @Inject
     private JogadorController jogadorController;
     
@@ -41,7 +41,7 @@ public class OperJogador {
      * 
      * Exemplo usando curl:
      * 
-     * curl http://localhost:8080/adivinhe/api/jogador/info/1 --header "Content-Type: application/json"
+     * curl http://localhost:8080/adivinhe/api/jogador/info/1
      * 
      * @param id O código do jogador
      * @return Os dados do jogador
@@ -52,18 +52,9 @@ public class OperJogador {
     public Response infoJogador(@PathParam("id") Integer id) {
         Jogador j = jogadorController.findByCodigo(id);
         if (j == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.noContent().build();
         }
-        
-        JsonObject resposta = Json.createObjectBuilder()
-                .add("codigo", j.getCodigo())
-                .add("apelido", j.getApelido())
-                .add("nome", j.getNome())
-                .add("email", j.getEmail())
-                .add("dataNasc", ISO_DATE.format(j.getDataNasc()))
-                .build();
-        
-        return Response.ok().entity(resposta).build();
+        return Response.ok().entity(j).build();
     }
     
     /**
@@ -71,7 +62,7 @@ public class OperJogador {
      * 
      * Exemplo usando curl:
      * 
-     * curl http://localhost:8080/adivinhe/api/jogador/jogos/1 --header "Content-Type: application/json"
+     * curl http://localhost:8080/adivinhe/api/jogador/jogos/1
      * 
      * @param id O código do jogador
      * @return A lista de jogos
@@ -82,26 +73,27 @@ public class OperJogador {
     public Response jogosJogador(@PathParam("id") Integer id) {
         Jogador jogador = jogadorController.findByCodigo(id);
         if (jogador == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.noContent().build();
         }
         
         List<Jogo> jogos = jogoController.findByJogador(id);
-        
+        Jsonb jb = JsonbBuilder.create();        
         JsonArrayBuilder jab = Json.createArrayBuilder();
         jogos.forEach(j -> {
-            JsonObject jo = Json.createObjectBuilder()
-                    .add("dataHora", ISO_DATE_TIME.format(j.getJogoPK().getDataHora()))
-                    .add("pontuacao", j.getPontuacao())
-                    .build();
-            jab.add(jo);
+            JsonReader jr = Json.createReader(new StringReader(jb.toJson(j)));
+//            JsonObject jo = Json.createObjectBuilder()
+//                    .add("dataHora", ISO_DATE_TIME.format(j.getJogoPK().getDataHora()))
+//                    .add("pontuacao", j.getPontuacao())
+//                    .build();
+            jab.add(jr.readObject());
         });
         
-        JsonObject resposta = Json.createObjectBuilder()
-                .add("jogador", id)
-                .add("jogos", jab)
-                .build();
+//        JsonObject resposta = Json.createObjectBuilder()
+//                .add("jogador", id)
+//                .add("jogos", jab)
+//                .build();
         
-        return Response.ok().entity(resposta).build();
+        return Response.ok().entity(jab.build()).build();
     }
     
     
@@ -110,7 +102,7 @@ public class OperJogador {
      * Exemplo usando curl:
      * 
      * curl -X POST http://localhost:8080/adivinhe/api/jogador/cadastro --header "Content-Type: application/json" \
-     *  -d '{ "apelido": "fdetal", "nome": "Fulado de Tal", "email": "fdetal@email.com", "dataNasc": "1995-03-17" }'
+     *  -d '{ "apelido": "fdetal", "nome": "Fulado de Tal", "email": "fdetal@email.com", "dataNasc": "1995-03-17T00:00:00-03:00" }'
      * 
      * @param jogador
      * @return Resultado da operação
@@ -122,10 +114,34 @@ public class OperJogador {
     public Response cadastroJogador(Jogador jogador) {
         try {
             Jogador j = jogadorController.merge(jogador);
-            return Response.status(Response.Status.CREATED).entity(j).build();
+            return Response.ok().entity(j).build();
         } catch (Exception e) {
-            return Response.status(Response.Status.CONFLICT).build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Json.createObjectBuilder().add("erro", e.getMessage()).build())
+                    .build();
         }
     }
-    
+ 
+    /**
+     * Retorna as informações de todos os jogadores e o respectivo número
+     * de jogos de cada um.
+     * @return Resultado da operação
+     */
+    @GET
+    @Path("/numjogos")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response numJogos() {
+        List<Tuple> tuplas = jogoController.numJogos();
+        JsonArrayBuilder jab = Json.createArrayBuilder();
+        Jsonb jb = JsonbBuilder.create();
+        tuplas.forEach(t -> {
+            Jogador j = t.get("jogador", Jogador.class);
+            JsonReader jr = Json.createReader(new StringReader(jb.toJson(j)));
+            JsonObjectBuilder job = Json.createObjectBuilder()
+               .add("jogador", jr.readObject())
+               .add("numJogos", t.get("numJogos", Long.class));
+            jab.add(job);
+        });
+        return Response.ok().entity(jab.build()).build();
+    }
 }
