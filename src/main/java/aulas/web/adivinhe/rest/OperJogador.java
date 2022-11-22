@@ -81,18 +81,8 @@ public class OperJogador {
         JsonArrayBuilder jab = Json.createArrayBuilder();
         jogos.forEach(j -> {
             JsonReader jr = Json.createReader(new StringReader(jb.toJson(j)));
-//            JsonObject jo = Json.createObjectBuilder()
-//                    .add("dataHora", ISO_DATE_TIME.format(j.getJogoPK().getDataHora()))
-//                    .add("pontuacao", j.getPontuacao())
-//                    .build();
             jab.add(jr.readObject());
         });
-        
-//        JsonObject resposta = Json.createObjectBuilder()
-//                .add("jogador", id)
-//                .add("jogos", jab)
-//                .build();
-        
         return Response.ok().entity(jab.build()).build();
     }
     
