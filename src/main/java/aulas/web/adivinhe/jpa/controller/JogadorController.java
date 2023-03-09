@@ -1,11 +1,11 @@
 package aulas.web.adivinhe.jpa.controller;
 
 import aulas.web.adivinhe.jpa.entity.Jogador;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import java.io.Serializable;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 
 /**
  * Implemente operações JPA sobre os jogadores.
