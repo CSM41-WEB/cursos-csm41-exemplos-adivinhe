@@ -1,12 +1,12 @@
 package aulas.web.adivinhe.jpa.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 /**
  * Representa a chave primária de um registo de jogo.

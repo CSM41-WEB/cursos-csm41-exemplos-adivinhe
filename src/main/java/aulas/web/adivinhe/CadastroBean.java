@@ -2,12 +2,12 @@ package aulas.web.adivinhe;
 
 import aulas.web.adivinhe.jpa.controller.JogadorController;
 import aulas.web.adivinhe.jpa.entity.Jogador;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.view.ViewScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.Serializable;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.view.ViewScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * Representa a sessão do jogador.
